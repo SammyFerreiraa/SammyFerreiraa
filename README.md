@@ -5,11 +5,11 @@
 </p>
 
 <p align="left">
-  🦄 Linguagens: <strong> Estudando HTML, CSS e javaScript.</strong>
+  🦄 Linguagens: <strong> Estudando React.</strong>
 </p>
 
 <p align="left">
-  💼 Ferramentas: <strong>Spck Editor, Termux, Treb Edit, Edge, Chrome.</strong>
+  💼 Ferramentas: <strong>VsCode, OperaGX.</strong>
 </p>
 
 <p align="left">
