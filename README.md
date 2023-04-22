@@ -1,7 +1,7 @@
 <img src="https://raw.githubusercontent.com/MicaelliMedeiros/micaellimedeiros/master/image/computer-illustration.png" min-width="400px" max-width="400px" width="400px" align="right" alt="Computador ">
 
 <p align="left"> 
-  Olá, me chamo Sammy, tenho 17 anos, comecei a programar no inicio de 2023 e estou estudando atualmente para me tornar um desenvolvedor Front-End.
+  Olá, me chamo Sammy, tenho 17 anos, comecei a programar no inicio de 2023 e estou estudando atualmente para me tornar um desenvolvedor Full Stack.
 </p>
 
 <p align="left">
