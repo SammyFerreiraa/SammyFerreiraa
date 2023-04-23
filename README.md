@@ -1,19 +1,19 @@
 <img src="https://raw.githubusercontent.com/MicaelliMedeiros/micaellimedeiros/master/image/computer-illustration.png" min-width="400px" max-width="400px" width="400px" align="right" alt="Computador ">
 
 <p align="left"> 
-  Olá, me chamo Sammy, tenho 17 anos, comecei a programar no inicio de 2023 e estou estudando atualmente para me tornar um desenvolvedor Full Stack.
+  Hello, my name is Sammy, I am 17 years old, I started programming in early 2023 and I am currently studying to become a Full Stack developer.
 </p>
 
 <p align="left">
-  🦄 Linguagens: <strong> HTML, CSS, JavaScript, ReactJS, Sass.</strong>
+  🦄 Languages: <strong> HTML, CSS, JavaScript, ReactJS, Sass.</strong>
 </p>
 
 <p align="left">
-  💼 Ferramentas: <strong>VsCode, OperaGX.</strong>
+  💼 Tools: <strong>VsCode, OperaGX.</strong>
 </p>
 
 <p align="left">
-  🌵 Entre em contato comigo : ⤵️
+  🌵 Contact me : ⤵️
 </p>
 
 <p align="left">
