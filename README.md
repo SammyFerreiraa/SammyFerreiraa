@@ -1,28 +1,14 @@
 <img src="https://raw.githubusercontent.com/MicaelliMedeiros/micaellimedeiros/master/image/computer-illustration.png" min-width="400px" max-width="400px" width="400px" align="right" alt="Computador ">
 
-<p align="left"> 
-  Hello, my name is Sammy, I am 17 years old, I started programming in early 2023 and I am currently studying to become a Full Stack developer.
-</p>
+<h1> Hello! </h1>
 
-<p align="left">
-  🦄 Languages: <strong> HTML, CSS, JavaScript, ReactJS, Sass.</strong>
-</p>
+[![Linkedin Badge](https://img.shields.io/badge/-LinkedIn-6633cc?style=flat-square&logo=Linkedin&logoColor=white&link=https://www.linkedin.com/in/sammyferreira1/)](https://www.linkedin.com/in/sammyferreira1/)
+[![Gmail Badge](https://img.shields.io/badge/-sammyfe2021@gmail.com-6633cc?style=flat-square&logo=Gmail&logoColor=white&link=mailto:sammyfe2021@gmail.com)](mailto:sammyfe2021@gmail.com)
 
-<p align="left">
-  💼 Tools: <strong>VsCode, OperaGX.</strong>
-</p>
+## My name is Sammy Ferreira
 
-<p align="left">
-  🌵 Contact me : ⤵️
-</p>
+(React JS | Next JS | Sass | JS | HTML | CSS | Typescript | Tailwind ) 🚀
 
-<p align="left">
-  <a href="https://www.linkedin.com/in/sammy-ferreira-740786212" alt="Linkedin">
-  <img src="https://img.shields.io/badge/-Linkedin-0e76a8?style=flat-square&logo=Linkedin&logoColor=white&link=LINK-DO-SEU-LINKEDIN" /></a>
 
-  <a href="88993468031" alt="WhatsApp">
-  <img src="https://img.shields.io/badge/-WhatsApp-25d366?style=flat-square&labelColor=25d366&logo=whatsapp&logoColor=white&link=API-DO-SEU-WHATSAPP"/></a>
-
-  <a href="https://instagram.com/sammy.ferreira1?igshid=ZDdkNTZiNTM=" alt="Instagram">
-  <img src="https://img.shields.io/badge/-Instagram-DF0174?style=flat-square&labelColor=DF0174&logo=instagram&logoColor=white&link=LINK-DO-SEU-INSTAGRAM"/></a>
-</p>  
+- information systems student - Federal University of Ceará
+- I am 17 years old, I started programming in early 2023 and I am studying to become a Full-Stack developer.
