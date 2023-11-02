@@ -7,7 +7,7 @@
 
 ## My name is Sammy Ferreira
 
-(React JS | Next JS | Sass | JS | HTML | CSS | Typescript | Tailwind | NodeJS | Fastify ) 🚀
+(React JS | Next JS | Sass | JS | HTML | CSS | Typescript | Tailwind ) 🚀
 
 
 - information systems student - Federal University of Ceará.
