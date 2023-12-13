@@ -16,7 +16,7 @@
  <div  align="center" style="">
       <img width=50% align="center"  src="https://github-readme-stats.vercel.app/api?username=sammyferreiraa&show_icons=true&theme=tokyonight" />
    <a  href="https://github.com/anuraghazra/github-readme-stats">
-  <img align="center" width=50% src="https://github-readme-streak-stats.herokuapp.com/?user=SammyFerreiraa&layout=compact&langs_count=7&theme=tokyonight" />
+  <img align="center" width=47% src="https://github-readme-streak-stats.herokuapp.com/?user=SammyFerreiraa&layout=compact&langs_count=7&theme=tokyonight" />
 </a>
  </div>
 
