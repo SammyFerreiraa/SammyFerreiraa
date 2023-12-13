@@ -14,8 +14,11 @@
 - I am 18 years old, I started programming in early 2023 and I am studying to become a Full-Stack developer.
   
  <div  align="center" style="">
-      <img width=55% align="center"  src="https://github-readme-stats.vercel.app/api?username=sammyferreiraa&show_icons=true&theme=tokyonight" />
-      <img width=40% align="center" src="https://github-readme-stats.vercel.app/api/top-langs/?username=sammyferreiraa&show_icons=true&theme=tokyonight&layout=compact" />
+      <img width=33% align="center"  src="https://github-readme-stats.vercel.app/api?username=sammyferreiraa&show_icons=true&theme=tokyonight" />
+      <img width=33% align="center" src="https://github-readme-stats.vercel.app/api/top-langs/?username=sammyferreiraa&show_icons=true&theme=tokyonight&layout=compact" />
+   <a  href="https://github.com/anuraghazra/github-readme-stats">
+  <img align="center" width=33% src="https://github-readme-streak-stats.herokuapp.com/?user=SammyFerreiraa&layout=compact&langs_count=7&theme=tokyonight" />
+</a>
  </div>
 
  ## My Skills
