@@ -11,7 +11,7 @@
 
 
 - information systems student - Federal University of Ceará.
-- I am 18 years old, I started programming in early 2023 and I am studying to become a Full-Stack developer.
+- I am 18 years old, I started programming in early 2023 and I am a Front-End developer.
   
  <div  align="center" style="">
       <img width=50% align="center"  src="https://github-readme-stats.vercel.app/api?username=sammyferreiraa&show_icons=true&theme=tokyonight" />
