@@ -7,11 +7,11 @@
 
 ## My name is Sammy Ferreira
 
-(React JS | Next JS | Sass | JS | HTML | CSS | Typescript | Tailwind ) 🚀
+(React JS | Next JS | Typescript | Tailwind | Nest JS | Node JS) 🚀
 
 
 - information systems student - Federal University of Ceará.
-- I am 18 years old, I started programming in early 2023 and I am a Front-End developer.
+- Full Stack Developer.
   
  <div  align="center" style="">
       <img width=50% align="center"  src="https://github-readme-stats.vercel.app/api?username=sammyferreiraa&show_icons=true&theme=tokyonight" />
