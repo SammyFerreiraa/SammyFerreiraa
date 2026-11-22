@@ -1,65 +1,118 @@
-<img src="https://raw.githubusercontent.com/MicaelliMedeiros/micaellimedeiros/master/image/computer-illustration.png" min-width="400px" max-width="400px" width="400px" align="right" alt="Computador ">
-
-<h1> Hello! </h1>
-
-[![Linkedin Badge](https://img.shields.io/badge/-LinkedIn-6633cc?style=flat-square&logo=Linkedin&logoColor=white&link=https://www.linkedin.com/in/sammyferreira1/)](https://www.linkedin.com/in/sammyferreira1/)
-[![Gmail Badge](https://img.shields.io/badge/-sammyfe2021@gmail.com-6633cc?style=flat-square&logo=Gmail&logoColor=white&link=mailto:sammyfe2021@gmail.com)](mailto:sammyfe2021@gmail.com)
-
-## My name is Sammy Ferreira
-
-(React JS | Next JS | Typescript | Tailwind | Nest JS | Node JS) 🚀
-
-
-- information systems student - Federal University of Ceará.
-- Full Stack Developer.
-  
- <div  align="center" style="">
-      <img width=50% align="center"  src="https://github-readme-stats.vercel.app/api?username=sammyferreiraa&show_icons=true&theme=tokyonight" />
-   <a  href="https://github.com/anuraghazra/github-readme-stats">
-  <img align="center" width=47% src="https://github-readme-streak-stats.herokuapp.com/?user=SammyFerreiraa&layout=compact&langs_count=7&theme=tokyonight" />
+<a href="https://www.linkedin.com/in/sammyferreira1/">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/header-dark.svg">
+    <img alt="Sammy Ferreira, full-stack developer" src="./assets/header-light.svg" width="100%">
+  </picture>
 </a>
- </div>
 
- ## My Skills
+<p align="center">
+  <a href="https://www.linkedin.com/in/sammyferreira1/"><img alt="LinkedIn" src="https://img.shields.io/badge/LinkedIn-sammyferreira1-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white"></a>
+  <a href="mailto:sammyfe2021@gmail.com"><img alt="Email" src="https://img.shields.io/badge/Email-sammyfe2021%40gmail.com-7C3AED?style=for-the-badge&logo=gmail&logoColor=white"></a>
+  <img alt="Profile views" src="https://komarev.com/ghpvc/?username=SammyFerreiraa&style=for-the-badge&color=0891b2&label=PROFILE+VIEWS">
+</p>
 
-#### Stack:
+I build products that use AI and handle money, and I care about the parts that keep them correct in production: validation, queues, idempotency and tests. Most of my work lives in private client repos, so here is the short version.
 
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)&nbsp;
-![Typescript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)&nbsp;
-![HTML](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)&nbsp;
-![CSS](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)&nbsp;
-![React.js](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)&nbsp;
-![NextJS](https://img.shields.io/badge/next%20js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)&nbsp;
-![Git](https://img.shields.io/badge/GIT-E44C30?style=for-the-badge&logo=git&logoColor=white)&nbsp;
-![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)&nbsp;
-![NodeJS](https://img.shields.io/badge/Node%20js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)&nbsp;
-![PNPM](https://img.shields.io/badge/pnpm-yellow?style=for-the-badge&logo=pnpm&logoColor=white)&nbsp;
-![SASS](https://img.shields.io/badge/Sass-CC6699?style=for-the-badge&logo=sass&logoColor=white)&nbsp;
-![JEST](https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white)&nbsp;
-![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)&nbsp;
-![C](https://img.shields.io/badge/C-00599C?style=for-the-badge&logo=c&logoColor=white)&nbsp;
-![C++](https://img.shields.io/badge/C%2B%2B-00599C?style=for-the-badge&logo=c%2B%2B&logoColor=white)&nbsp;
-![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)&nbsp;
-![Express](https://img.shields.io/badge/Express%20js-000000?style=for-the-badge&logo=express&logoColor=white)&nbsp;
-![Postgres](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)&nbsp;
-![ReactNative](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)&nbsp;
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/highlights-dark.svg">
+  <img alt="20k+ creators, 10k+ deals a day, 1st place hackathon, 42,000x less data per query" src="./assets/highlights-light.svg" width="100%">
+</picture>
 
+## Featured work
 
-#### Workstation Tools:
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/project-pingo-dark.svg">
+    <img alt="Pingo" src="./assets/project-pingo-light.svg" width="49%">
+  </picture>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/project-soin-dark.svg">
+    <img alt="SOIN" src="./assets/project-soin-light.svg" width="49%">
+  </picture>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/project-creators-dark.svg">
+    <img alt="Creator platform" src="./assets/project-creators-light.svg" width="49%">
+  </picture>
+  <a href="https://candidato.nortyra.com.br">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="./assets/project-candidato-dark.svg">
+      <img alt="Candidatô" src="./assets/project-candidato-light.svg" width="49%">
+    </picture>
+  </a>
+</p>
 
-![VScode](https://img.shields.io/badge/Visual_Studio_Code-0078D4?style=for-the-badge&logo=visual%20studio%20code&logoColor=white)&nbsp;
-![Notion](https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white)&nbsp;
-![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)&nbsp;
-![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)&nbsp;
+<details>
+<summary><b>How Pingo turns a Telegram message into a WhatsApp alert</b></summary>
+<br>
 
-&nbsp;
-&nbsp;
+```mermaid
+flowchart LR
+    A[64 Telegram channels] -->|MTProto| B[Reader]
+    B --> C[(Postgres job queue<br/>FOR UPDATE SKIP LOCKED)]
+    C --> D{LLM extraction<br/>JSON Schema}
+    D -->|Groq| E[Structured deal<br/>price, coupon, store]
+    D -->|fallback: Together| E
+    D -->|fallback: heuristics| E
+    E --> F[Matcher<br/>user keyword alerts]
+    F --> G[Web feed]
+    F --> H[WhatsApp queue<br/>retries 1, 5, 15 min]
+```
 
-## Contacts:
+Retries are classified by error type, the queue survives WhatsApp session drops, and nothing depends on a single LLM provider.
+</details>
 
-<div> 
-<a href="https://www.instagram.com/sammy.ferreira1" target="_blank"><img src="https://img.shields.io/badge/-Instagram-%23E4405F?style=for-the-badge&logo=instagram&logoColor=white">
-</a>
-<a href = "mailto:sammyfe2021@gmail.com"> <img src="https://img.shields.io/badge/-Gmail-%23333?style=for-the-badge&logo=gmail&logoColor=white" target="_blank"></a>
-<a href="https://www.linkedin.com/in/sammyferreira1/" target="_blank"><img src="https://img.shields.io/badge/-LinkedIn-%230077B5?style=for-the-badge&logo=linkedin&logoColor=white"  target="_blank"></a> 
-</div>&nbsp;&nbsp;
+<details>
+<summary><b>How I ship with AI agents</b></summary>
+<br>
+
+- I write the spec first: inputs, outputs, edge cases and what failure looks like.
+- Agents implement in small units, and each unit gets a review pass before it merges.
+- Numbers that matter are computed in code, never left for the model to guess.
+- Tests are the contract. On SOIN that meant about 700 of them in four days.
+</details>
+
+<details>
+<summary><b>Things I like in production</b></summary>
+<br>
+
+- Postgres doing real work: job queues with `SKIP LOCKED`, advisory locks, window functions
+- Money flows that survive bad days: idempotency keys, webhooks plus polling, reconciliation
+- LLMs with guardrails: structured output, validation in the backend, provider fallbacks, evals
+</details>
+
+## Stack
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/stack-dark.svg">
+  <img alt="TypeScript, JavaScript, React, Next.js, Node.js, NestJS, tRPC, Prisma, PostgreSQL, MySQL, Tailwind, React Native, Expo, Capacitor, Docker, Vercel, Linux, GitHub Actions, Gemini, Claude, PHP, Pix, Telegram, WhatsApp" src="./assets/stack-light.svg" width="100%">
+</picture>
+
+## Activity
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./profile/stats-dark.svg">
+    <img alt="GitHub stats" src="./profile/stats-light.svg" width="49%">
+  </picture>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./profile/top-langs-dark.svg">
+    <img alt="Top languages" src="./profile/top-langs-light.svg" width="49%">
+  </picture>
+</p>
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./profile/streak-dark.svg">
+    <img alt="Contribution streak" src="./profile/streak-light.svg" width="60%">
+  </picture>
+</p>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./profile/snake-dark.svg">
+  <img alt="Snake eating my contribution graph" src="./profile/snake-light.svg" width="100%">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/footer-dark.svg">
+  <img alt="Thanks for stopping by" src="./assets/footer-light.svg" width="100%">
+</picture>
