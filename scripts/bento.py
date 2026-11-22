@@ -1,0 +1,460 @@
+#!/usr/bin/env python3
+"""Renders the bento-grid profile card (dark + light) as self-contained animated SVGs.
+
+Standard library only, so it runs on a plain GitHub Actions runner.
+  python3 scripts/bento.py            # live data (needs GH_TOKEN for the contribution calendar)
+  python3 scripts/bento.py --demo     # sample contribution data, no network
+"""
+import base64
+import datetime as dt
+import json
+import math
+import os
+import random
+import sys
+import urllib.parse
+import urllib.request
+from html import escape
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+CFG = json.loads((ROOT / "profile.json").read_text(encoding="utf-8"))
+ICONS = json.loads((ROOT / "scripts" / "icons.json").read_text(encoding="utf-8"))
+METRICS = json.loads((ROOT / "fonts" / "metrics.json").read_text(encoding="utf-8"))
+DEMO = "--demo" in sys.argv
+
+FONT_FILES = {"Inter": [(400, "inter-Regular.woff2"), (600, "inter-SemiBold.woff2"), (800, "inter-ExtraBold.woff2")],
+              "JB": [(400, "jbmono-400.woff2"), (500, "jbmono-500.woff2")]}
+
+
+# Colors are picked from the background photo (a sunset over wet sand), not from a generic palette.
+# "tile" is the approximate color a glass tile ends up as, used only for icon-contrast checks.
+THEMES = {
+    "dark": dict(veil="#0d0a0c", veil_op=0.3, glass="#120c0e", glass_op=0.5, edge="#ffffff", edge_op=0.14,
+                 tile="#2a1d1f", text="#fff6ef", muted="#dccbc1", faint="#a99189", a1="#ff9a6b", a2="#ffd38a",
+                 good="#7ee0a1", node="#ffffff", node_op=0.07,
+                 heat=["#2c2124", "#6e3b33", "#b65a3d", "#f08c5c", "#ffd38a"]),
+    "light": dict(veil="#fff8f3", veil_op=0.4, glass="#ffffff", glass_op=0.6, edge="#ffffff", edge_op=0.9,
+                  tile="#f7efe9", text="#2b1d17", muted="#5f4a40", faint="#937d72", a1="#c4532a", a2="#a7671a",
+                  good="#1f8a4c", node="#ffffff", node_op=0.6,
+                  heat=["#eee2da", "#f5c6a6", "#ec9a6b", "#d1673b", "#9b3e1b"]),
+}
+
+W, PAD, GAP = 1000, 20, 16
+INNER = W - PAD * 2
+
+# ------------------------------------------------------------------ text helpers
+def tw(text, font, size):
+    m = METRICS[font]
+    adv = m["adv"]
+    return sum(adv.get(ch, m["upm"] * 0.55) for ch in text) * size / m["upm"]
+
+
+def wrap(text, font, size, width):
+    words, lines, cur = text.split(), [], ""
+    for w_ in words:
+        cand = (cur + " " + w_).strip()
+        if tw(cand, font, size) <= width or not cur:
+            cur = cand
+        else:
+            lines.append(cur)
+            cur = w_
+    if cur:
+        lines.append(cur)
+    return lines
+
+
+def T(x, y, s, size, fill, font="Inter", weight=400, anchor="start", ls=0, extra=""):
+    fam = "'Inter', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" if font == "Inter" else \
+          "'JB', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+    lsp = f' letter-spacing="{ls}"' if ls else ""
+    return (f'<text x="{x:.1f}" y="{y:.1f}" font-family="{fam}" font-size="{size}" font-weight="{weight}" '
+            f'fill="{fill}" text-anchor="{anchor}"{lsp}{extra}>{escape(s)}</text>')
+
+
+def mkey(font, weight):
+    if font == "Inter":
+        return {400: "inter-400", 600: "inter-600", 800: "inter-800"}[weight]
+    return {400: "mono-400", 500: "mono-500"}[weight]
+
+
+def paragraph(x, y, text, size, fill, width, lh=1.45, weight=400, font="Inter"):
+    lines = wrap(text, mkey(font, weight), size, width)
+    return "".join(T(x, y + i * size * lh, ln, size, fill, font, weight) for i, ln in enumerate(lines)), len(lines)
+
+
+def icon(name, x, y, size, color):
+    ic = ICONS[name]
+    s = size / 24
+    return f'<g transform="translate({x:.1f} {y:.1f}) scale({s:.4f})"><path d="{ic["path"]}" fill="{color}"/></g>'
+
+
+def rel_lum(h):
+    h = h.lstrip("#")
+    c = [int(h[i:i + 2], 16) / 255 for i in (0, 2, 4)]
+    c = [v / 12.92 if v <= 0.03928 else ((v + 0.055) / 1.055) ** 2.4 for v in c]
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]
+
+
+def brand(name, t):
+    color = "#" + ICONS[name]["hex"]
+    lum, bg = rel_lum(color), rel_lum(t["tile"])
+    contrast = (max(lum, bg) + 0.05) / (min(lum, bg) + 0.05)
+    if contrast >= 2.6:
+        return color
+    return t["text"]
+
+
+# ------------------------------------------------------------------ data
+def gql(query, variables, token):
+    req = urllib.request.Request("https://api.github.com/graphql",
+                                 data=json.dumps({"query": query, "variables": variables}).encode(),
+                                 headers={"Authorization": f"bearer {token}", "Content-Type": "application/json",
+                                          "User-Agent": "bento-profile"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        data = json.loads(r.read())
+    if "errors" in data:
+        raise RuntimeError(data["errors"])
+    return data["data"]
+
+
+LEVELS = {"NONE": 0, "FIRST_QUARTILE": 1, "SECOND_QUARTILE": 2, "THIRD_QUARTILE": 3, "FOURTH_QUARTILE": 4}
+
+
+def load_calendar():
+    if DEMO or not os.environ.get("GH_TOKEN"):
+        rnd = random.Random(7)
+        today = dt.date(2026, 11, 22)
+        start = today - dt.timedelta(days=today.weekday() + 1 + 52 * 7)
+        days = []
+        d = start
+        while d <= today:
+            base = 0.62 if d.weekday() < 5 else 0.3
+            ramp = 0.6 + 0.4 * ((d - start).days / 371)
+            n = 0 if rnd.random() > base * ramp else int(rnd.expovariate(1 / 7)) + 1
+            days.append((d, n))
+            d += dt.timedelta(days=1)
+        mx = max(n for _, n in days)
+        cal = [(d, n, 0 if n == 0 else min(4, 1 + int(3 * n / mx * 1.6))) for d, n in days]
+        return cal
+    q = """query($login:String!){ user(login:$login){ contributionsCollection{ contributionCalendar{
+           totalContributions weeks{ contributionDays{ date contributionCount contributionLevel } } } } } }"""
+    data = gql(q, {"login": CFG["username"]}, os.environ["GH_TOKEN"])
+    weeks = data["user"]["contributionsCollection"]["contributionCalendar"]["weeks"]
+    return [(dt.date.fromisoformat(d["date"]), d["contributionCount"], LEVELS[d["contributionLevel"]])
+            for w_ in weeks for d in w_["contributionDays"]]
+
+
+def streaks(cal):
+    counts = [n for _, n in [(d, n) for d, n, _ in cal]]
+    longest = cur = 0
+    for n in counts:
+        cur = cur + 1 if n > 0 else 0
+        longest = max(longest, cur)
+    current = 0
+    for i, n in enumerate(reversed(counts)):
+        if n > 0:
+            current += 1
+        elif i == 0:
+            continue  # today may still be empty
+        else:
+            break
+    return current, longest
+
+
+def load_avatar():
+    for ext, mime in (("jpg", "image/jpeg"), ("jpeg", "image/jpeg"), ("png", "image/png")):
+        p = ROOT / "assets" / f"avatar.{ext}"
+        if p.exists():
+            return f"data:{mime};base64," + base64.b64encode(p.read_bytes()).decode()
+    if DEMO:
+        return None
+    try:
+        req = urllib.request.Request(f"https://github.com/{CFG['username']}.png?size=240",
+                                     headers={"User-Agent": "bento-profile"})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            mime = r.headers.get_content_type()
+            return f"data:{mime};base64," + base64.b64encode(r.read()).decode()
+    except Exception as e:  # keep the card rendering even if the avatar fails
+        print("avatar fetch failed:", e, file=sys.stderr)
+        return None
+
+
+
+def asset_uri(name):
+    p = ROOT / "assets" / name
+    mime = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", "svg": "image/svg+xml"}[p.suffix[1:]]
+    return f"data:{mime};base64," + base64.b64encode(p.read_bytes()).decode()
+
+
+def http(url, data=None, headers=None):
+    req = urllib.request.Request(url, data=data, headers={"User-Agent": "bento-profile", **(headers or {})})
+    with urllib.request.urlopen(req, timeout=20) as r:
+        return r.status, r.read(), r.headers.get_content_type()
+
+
+def load_spotify():
+    """Track playing now, else the last one played. None when not configured or on any error."""
+    keys = [os.environ.get(k) for k in ("SPOTIFY_CLIENT_ID", "SPOTIFY_CLIENT_SECRET", "SPOTIFY_REFRESH_TOKEN")]
+    if DEMO or not all(keys):
+        return None
+    cid, secret, refresh = keys
+    try:
+        basic = base64.b64encode(f"{cid}:{secret}".encode()).decode()
+        _, body, _ = http("https://accounts.spotify.com/api/token",
+                          urllib.parse.urlencode({"grant_type": "refresh_token", "refresh_token": refresh}).encode(),
+                          {"Authorization": f"Basic {basic}", "Content-Type": "application/x-www-form-urlencoded"})
+        auth = {"Authorization": "Bearer " + json.loads(body)["access_token"]}
+        status, body, _ = http("https://api.spotify.com/v1/me/player/currently-playing", headers=auth)
+        cur = json.loads(body) if status == 200 and body else {}
+        now = bool(cur.get("is_playing")) and (cur.get("item") or {}).get("type") == "track"
+        if now:
+            track = cur["item"]
+        else:
+            _, body, _ = http("https://api.spotify.com/v1/me/player/recently-played?limit=1", headers=auth)
+            items = json.loads(body).get("items") or []
+            if not items:
+                return None
+            track = items[0]["track"]
+        imgs = sorted(track["album"]["images"], key=lambda i: i.get("width") or 0)
+        pick = next((i for i in imgs if (i.get("width") or 0) >= 200), imgs[-1])
+        _, raw, mime = http(pick["url"])
+        return {"now": now, "title": track["name"], "artist": ", ".join(a["name"] for a in track["artists"]),
+                "art": f"data:{mime};base64," + base64.b64encode(raw).decode()}
+    except Exception as e:  # music is a nice-to-have; never break the card for it
+        print("spotify failed:", e, file=sys.stderr)
+        return None
+
+
+def truncate(text, font, size, width):
+    if tw(text, font, size) <= width:
+        return text
+    while text and tw(text + "…", font, size) > width:
+        text = text[:-1]
+    return text.rstrip() + "…"
+
+
+# ------------------------------------------------------------------ building blocks
+def tile(x, y, w, h, t, idx, inner=""):
+    return (f'<g class="tile" style="animation-delay:{0.06 * idx:.2f}s">'
+            f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="22" fill="{t["glass"]}" fill-opacity="{t["glass_op"]}"'
+            f' stroke="{t["edge"]}" stroke-opacity="{t["edge_op"]}"/>{inner}</g>')
+
+
+def head(x, y, w, t, title, tag, icon_uri=None):
+    out, tx = "", x
+    if icon_uri:
+        out += f'<image href="{icon_uri}" x="{x}" y="{y - 26}" width="34" height="34"/>'
+        tx = x + 46
+    out += T(tx, y, title, 22, t["text"], "Inter", 800, ls=-0.4)
+    out += T(x + w, y - 3, tag, 12, t["faint"], "Inter", 400, "end")
+    return out
+
+
+def shot(x, y, w, h, t, uri, cid):
+    return (f'<clipPath id="{cid}"><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="12"/></clipPath>'
+            f'<image href="{uri}" x="{x}" y="{y}" width="{w}" height="{h}" clip-path="url(#{cid})" '
+            f'preserveAspectRatio="xMinYMin slice"/>'
+            f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="12" fill="none" stroke="{t["edge"]}" '
+            f'stroke-opacity="{t["edge_op"] * 1.4:.2f}"/>')
+
+
+def css(ncols):
+    fonts = []
+    for fam, items in FONT_FILES.items():
+        for weight, fn in items:
+            b64 = base64.b64encode((ROOT / "fonts" / fn).read_bytes()).decode()
+            fonts.append(f"@font-face{{font-family:'{fam}';font-weight:{weight};font-style:normal;"
+                         f"src:url(data:font/woff2;base64,{b64}) format('woff2');}}")
+    cols = "".join(f".c{i}{{animation-delay:{0.45 + i * 0.018:.3f}s}}" for i in range(ncols))
+    return ("<style>" + "".join(fonts) +
+            ".tile{animation:up .8s cubic-bezier(.2,.8,.2,1) both}"
+            "@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}"
+            ".cell{animation:pop .5s ease-out both}"
+            "@keyframes pop{from{opacity:0}to{opacity:1}}" + cols +
+            ".pulse{transform-box:fill-box;transform-origin:center;animation:pulse 1.8s ease-out infinite}"
+            "@keyframes pulse{from{transform:scale(1);opacity:.8}to{transform:scale(3.2);opacity:0}}"
+            ".vinyl{transform-box:fill-box;transform-origin:center;animation:spin 9s linear infinite}"
+            "@keyframes spin{to{transform:rotate(360deg)}}"
+            ".bg{animation:drift 40s ease-in-out infinite alternate}"
+            "@keyframes drift{to{transform:scale(1.08) translate(-20px,10px)}}"
+            "@media (prefers-reduced-motion:reduce){*{animation:none!important}}"
+            "</style>")
+
+
+# ------------------------------------------------------------------ the card
+def render(theme, cal, avatar, music, img):
+    t = THEMES[theme]
+    current, longest = streaks(cal)
+    total = sum(n for _, n, _ in cal)
+    best = max(cal, key=lambda r: r[1])
+    weeks = []
+    for d, n, lvl in cal:
+        if not weeks or d.weekday() == 6:
+            weeks.append([])
+        weeks[-1].append((d, n, lvl))
+
+    y_hero, h_hero = PAD, 200
+    y_stats, h_stats = y_hero + h_hero + GAP, 116
+    y_r3, h_r3 = y_stats + h_stats + GAP, 372
+    y_r4, h_r4 = y_r3 + h_r3 + GAP, 150
+    y_r5, h_r5 = y_r4 + h_r4 + GAP, 106
+    y_r6, h_r6 = y_r5 + h_r5 + GAP, 246
+    H = y_r6 + h_r6 + PAD
+    wl, wr = 548, INNER - 548 - GAP
+
+    cx, cy = PAD + 100, y_hero + 100
+    defs = (f'<defs><clipPath id="frame"><rect width="{W}" height="{H}" rx="28"/></clipPath>'
+            f'<clipPath id="av"><circle cx="{cx}" cy="{cy}" r="60"/></clipPath></defs>')
+    parts = [f'<g clip-path="url(#frame)"><image class="bg" href="{img["bg"]}" width="{W}" height="{H}" '
+             f'preserveAspectRatio="xMidYMid slice"/>'
+             f'<rect width="{W}" height="{H}" fill="{t["veil"]}" fill-opacity="{t["veil_op"]}"/></g>']
+
+    # ---- hero
+    if avatar:
+        av = (f'<image href="{avatar}" x="{cx - 60}" y="{cy - 60}" width="120" height="120" clip-path="url(#av)" '
+              f'preserveAspectRatio="xMidYMid slice"/>')
+    else:
+        initials = "".join(p[0] for p in CFG["name"].split()[:2]).upper()
+        av = (f'<circle cx="{cx}" cy="{cy}" r="60" fill="{t["a1"]}"/>'
+              + T(cx, cy + 14, initials, 38, "#ffffff", "Inter", 800, "middle"))
+    av += (f'<circle cx="{cx}" cy="{cy}" r="60.5" fill="none" stroke="{t["edge"]}" '
+           f'stroke-opacity="{min(1, t["edge_op"] * 3):.2f}" stroke-width="1.5"/>')
+    hx = PAD + 194
+    mw = W - PAD - 24 - 330 - hx - 20  # text column ends before the music card
+    hero = T(hx - 2, y_hero + 82, CFG["name"], 44, t["text"], "Inter", 800, ls=-1.3)
+    tag_svg, n_lines = paragraph(hx, y_hero + 116, CFG["tagline"], 16, t["text"], mw, lh=1.4)
+    hero += tag_svg
+    hero += T(hx, y_hero + 116 + n_lines * 22.4 + 12, CFG["subline"], 13, t["faint"], "Inter", 400)
+
+    mx_, my_, mw_, mh_ = W - PAD - 24 - 330, y_hero + 24, 330, 152
+    card = (f'<rect x="{mx_}" y="{my_}" width="{mw_}" height="{mh_}" rx="18" fill="{t["node"]}" '
+            f'fill-opacity="{t["node_op"]}" stroke="{t["edge"]}" stroke-opacity="{t["edge_op"]}"/>')
+    tx = mx_ + 146
+    tw_ = mw_ - 146 - 18
+    if music:
+        vx, vy, r = mx_ + 20 + 56, my_ + mh_ / 2, 56
+        disc = (f'<clipPath id="art"><circle cx="{vx}" cy="{vy}" r="{r}"/></clipPath>'
+                f'<g class="{"vinyl" if music["now"] else ""}">'
+                f'<image href="{music["art"]}" x="{vx - r}" y="{vy - r}" width="{2 * r}" height="{2 * r}" '
+                f'clip-path="url(#art)" preserveAspectRatio="xMidYMid slice"/>'
+                f'<circle cx="{vx}" cy="{vy}" r="{r - 14}" fill="none" stroke="#000" stroke-opacity=".18"/>'
+                f'<circle cx="{vx}" cy="{vy}" r="{r - 26}" fill="none" stroke="#000" stroke-opacity=".18"/></g>'
+                f'<circle cx="{vx}" cy="{vy}" r="{r}" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="2"/>'
+                f'<circle cx="{vx}" cy="{vy}" r="7" fill="{t["glass"]}" stroke="#000" stroke-opacity=".3"/>')
+        label = "listening now" if music["now"] else "last played"
+        card += disc + icon("Spotify", tx, my_ + 30, 15, "#1DB954")
+        card += T(tx + 22, my_ + 42, label, 12, t["muted"], "Inter", 400)
+        lines = wrap(music["title"], "inter-800", 16, tw_)
+        if len(lines) > 2:
+            lines = [lines[0], truncate(" ".join(lines[1:]), "inter-800", 16, tw_)]
+        for i, ln in enumerate(lines):
+            card += T(tx, my_ + 74 + i * 21, truncate(ln, "inter-800", 16, tw_), 16, t["text"], "Inter", 800)
+        card += T(tx, my_ + 74 + len(lines) * 21 + 4, truncate(music["artist"], "inter-400", 13, tw_), 13,
+                  t["muted"], "Inter", 400)
+    else:
+        st = CFG["status"]
+        card += (f'<circle class="pulse" cx="{mx_ + 26}" cy="{my_ + 32}" r="4.5" fill="{t["good"]}"/>'
+                 f'<circle cx="{mx_ + 26}" cy="{my_ + 32}" r="4.5" fill="{t["good"]}"/>'
+                 + T(mx_ + 40, my_ + 36, "right now", 12, t["muted"], "Inter", 400)
+                 + T(mx_ + 22, my_ + 80, st["title"], 22, t["text"], "Inter", 800)
+                 + T(mx_ + 22, my_ + 104, st["subtitle"], 13, t["muted"], "Inter", 400))
+    parts.append(tile(PAD, y_hero, INNER, h_hero, t, 0, av + hero + card))
+
+    # ---- stats
+    sw_ = (INNER - GAP * 3) / 4
+    for i, s in enumerate(CFG["stats"]):
+        x = PAD + i * (sw_ + GAP)
+        inner = T(x + 20, y_stats + 52, s["value"], 36, t["text"], "Inter", 800, ls=-1)
+        para, _ = paragraph(x + 22, y_stats + 78, s["label"], 12.5, t["muted"], sw_ - 40, lh=1.4)
+        parts.append(tile(round(x, 1), y_stats, round(sw_, 1), h_stats, t, 1 + i, inner + para))
+
+    # ---- products with real screenshots
+    for j, (key, x, w) in enumerate((("pingo", PAD, wl), ("candidato", PAD + wl + GAP, wr))):
+        c = CFG[key]
+        inner = head(x + 24, y_r3 + 46, w - 48, t, c["title"], c["tag"], img[key + "_icon"])
+        para, _ = paragraph(x + 24, y_r3 + 82, c["text"], 13.5, t["muted"], w - 48, lh=1.45)
+        sh_h = 196
+        inner += para + shot(x + 24, y_r3 + h_r3 - sh_h - 46, w - 48, sh_h, t, img[key + "_shot"], f"s{key}")
+        inner += T(x + 24, y_r3 + h_r3 - 20, c["footer"] + " ↗", 12, t["a1"], "JB", 500)
+        parts.append(tile(x, y_r3, w, h_r3, t, 5 + j, inner))
+
+    # ---- soin + creators
+    hw = (INNER - GAP) / 2
+    for j, key in enumerate(("soin", "creators")):
+        c = CFG[key]
+        x = PAD + j * (hw + GAP)
+        inner = head(x + 24, y_r4 + 44, hw - 48, t, c["title"], c["tag"])
+        para, _ = paragraph(x + 24, y_r4 + 76, c["text"], 13.5, t["muted"], hw - 48, lh=1.45)
+        inner += para + T(x + 24, y_r4 + h_r4 - 20, c["footer"], 12, t["a1"], "JB", 500)
+        parts.append(tile(round(x, 1), y_r4, round(hw, 1), h_r4, t, 7 + j, inner))
+
+    # ---- stack, one row of real logos
+    x, y = PAD, y_r5
+    names = CFG["stack"]
+    cw = (INNER - 40) / len(names)
+    inner = ""
+    for i, name in enumerate(names):
+        ix = x + 20 + i * cw + cw / 2
+        inner += (f'<rect x="{ix - 21:.1f}" y="{y + 20}" width="42" height="42" rx="12" fill="{t["node"]}" '
+                  f'fill-opacity="{t["node_op"]}" stroke="{t["edge"]}" stroke-opacity="{t["edge_op"]}"/>')
+        inner += icon(name, ix - 11, y + 30, 22, brand(name, t))
+        label = name if tw(name, "inter-400", 10.5) < cw - 2 else name.split()[0]
+        inner += T(ix, y + 84, label, 10.5, t["muted"], "Inter", 400, "middle")
+    parts.append(tile(x, y, INNER, h_r5, t, 9, inner))
+
+    # ---- contributions
+    x, y = PAD, y_r6
+    inner = T(x + 26, y + 46, f"{total:,}", 30, t["text"], "Inter", 800, ls=-0.8)
+    inner += T(x + 26 + tw(f"{total:,}", "inter-800", 30) + 10, y + 46, "contributions in the last year", 14,
+               t["muted"], "Inter", 400)
+    days = lambda n: f"{n} day" if n == 1 else f"{n} days"
+    mini = [("current streak", days(current)), ("longest streak", days(longest)),
+            ("best day", f"{best[1]} on {best[0].strftime('%b %-d')}")]
+    mx = x + INNER - 26
+    for label, val in reversed(mini):
+        wv = max(tw(val, "inter-600", 14), tw(label, "inter-400", 11))
+        inner += T(mx, y + 28, label, 11, t["faint"], "Inter", 400, "end")
+        inner += T(mx, y + 48, val, 14, t["text"], "Inter", 600, "end")
+        mx -= wv + 28
+    cell, cg = 13.4, 3.6
+    gx = x + (INNER - (len(weeks) * (cell + cg) - cg)) / 2
+    gy = y + 90
+    month_seen = set()
+    for wi, wk in enumerate(weeks):
+        for d, n, lvl in wk:
+            dy = (d.weekday() + 1) % 7
+            if d.day <= 7 and d.month not in month_seen and dy == 0 and wi < len(weeks) - 1:
+                month_seen.add(d.month)
+                inner += T(gx + wi * (cell + cg), gy - 10, d.strftime("%b"), 10, t["faint"], "Inter", 400)
+            inner += (f'<rect class="cell c{wi}" x="{gx + wi * (cell + cg):.1f}" y="{gy + dy * (cell + cg):.1f}" '
+                      f'width="{cell}" height="{cell}" rx="3.2" fill="{t["heat"][lvl]}"/>')
+    upd = dt.datetime.now(dt.timezone.utc).strftime("%b %-d, %Y") if not DEMO else "Nov 22, 2026"
+    inner += T(x + 26, y + h_r6 - 16, f"updated {upd} · {CFG['background']['credit']}", 10.5, t["faint"],
+               "Inter", 400)
+    lx = x + INNER - 26
+    for lvl in range(4, -1, -1):
+        inner += f'<rect x="{lx - 11}" y="{y + h_r6 - 26}" width="11" height="11" rx="2.5" fill="{t["heat"][lvl]}"/>'
+        lx -= 15
+    inner += T(lx - 4, y + h_r6 - 16, "less", 10.5, t["faint"], "Inter", 400, "end")
+    parts.append(tile(x, y, INNER, h_r6, t, 10, inner))
+
+    title = f'{CFG["name"]}: {CFG["subline"]}'
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" '
+            f'role="img" aria-label="{escape(title)}"><title>{escape(title)}</title>'
+            + css(len(weeks)) + defs + "".join(parts) + "</svg>\n")
+
+
+if __name__ == "__main__":
+    cal = load_calendar()
+    avatar = load_avatar()
+    music = load_spotify()
+    img = {"bg": asset_uri(CFG["background"]["file"])}
+    for key in ("pingo", "candidato"):
+        img[key + "_icon"] = asset_uri(CFG[key]["icon"])
+        img[key + "_shot"] = asset_uri(CFG[key]["shot"])
+    out = ROOT / "profile"
+    out.mkdir(exist_ok=True)
+    for th in THEMES:
+        (out / f"bento-{th}.svg").write_text(render(th, cal, avatar, music, img), encoding="utf-8")
+    print("wrote", [p.name for p in out.glob("bento-*.svg")], "music:", bool(music))

@@ -1,0 +1,49 @@
+{
+  "username": "SammyFerreiraa",
+  "name": "Sammy Ferreira",
+  "tagline": "Most of my code lives in private repos, so this is the trailer.",
+  "subline": "full-stack developer · Fortaleza, Brazil",
+  "status": {
+    "title": "Building Pingo",
+    "subtitle": "deal alerts powered by LLMs"
+  },
+  "stats": [
+    { "value": "20k+", "label": "creators on a platform I built as sole dev" },
+    { "value": "10k+", "label": "deals parsed every day with LLMs" },
+    { "value": "1st", "label": "place at the TJCE-UFC Hackathon 2026" },
+    { "value": "42,000x", "label": "less data per query after a SQL rewrite" }
+  ],
+  "pingo": {
+    "title": "Pingo",
+    "tag": "founder, in production",
+    "icon": "pingo-icon.svg",
+    "shot": "shot-pingo.jpg",
+    "text": "Watches 64 Telegram deal channels, pulls price, coupon and store out with LLMs, and pings you on WhatsApp when something you want shows up.",
+    "footer": "pingo.nortyra.com.br"
+  },
+  "candidato": {
+    "title": "Candidatô",
+    "tag": "public SaaS",
+    "icon": "candidato-icon.svg",
+    "shot": "shot-candidato.jpg",
+    "text": "Job application emails where the AI only picks from lists the backend checks, so it can't make things up.",
+    "footer": "candidato.nortyra.com.br"
+  },
+  "soin": {
+    "title": "SOIN",
+    "tag": "hackathon winner",
+    "text": "Court case management with 1,300 real cases synced from the CNJ DataJud API.",
+    "footer": "4 days · ~700 tests · sole dev"
+  },
+  "creators": {
+    "title": "Creator platform",
+    "tag": "sole dev, client work",
+    "text": "Influencer marketing: campaigns, social metrics and Pix payouts with reconciliation.",
+    "footer": "20k+ creators · iOS + Android"
+  },
+  "stack": [
+    "TypeScript", "React", "Next.js", "Node.js", "NestJS", "tRPC", "Prisma", "PostgreSQL",
+    "Tailwind", "Expo", "Docker", "Vercel", "GitHub Actions", "Gemini", "Claude", "Pix"
+  ],
+  "background": { "file": "bg.jpg", "credit": "background: Jericoacoara, Ceará" }
+}
