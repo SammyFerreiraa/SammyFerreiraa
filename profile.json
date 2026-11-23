@@ -96,5 +96,22 @@
     "AI products in production",
     "payments, Pix and webhooks",
     "PostgreSQL beyond CRUD"
+  ],
+  "social": {
+    "linkedin": {
+      "label": "LinkedIn",
+      "handle": "in/sammyferreira1",
+      "url": "https://www.linkedin.com/in/sammyferreira1/"
+    },
+    "email": {
+      "label": "Email",
+      "handle": "sammyfe2021@gmail.com",
+      "url": "mailto:sammyfe2021@gmail.com"
+    }
+  },
+  "questions": [
+    "How Pingo turns a Telegram message into a WhatsApp alert",
+    "How I ship with AI agents",
+    "Things I like in production"
   ]
 }

@@ -325,16 +325,20 @@ def render(theme, cal, avatar, music, img):
         weeks[-1].append((d, n, lvl))
 
     y_hero, h_hero = PAD, 214
-    y_stats, h_stats = y_hero + h_hero + GAP, 116
+    y_soc, h_soc = y_hero + h_hero + GAP, 64
+    y_stats, h_stats = y_soc + h_soc + GAP, 116
     y_r3, h_r3 = y_stats + h_stats + GAP, 372
     y_r4, h_r4 = y_r3 + h_r3 + GAP, 372
-    y_r5, h_r5 = y_r4 + h_r4 + GAP, 106
+    y_q, h_q = y_r4 + h_r4 + GAP, 60
+    y_r5, h_r5 = y_q + len(CFG["questions"]) * (h_q + GAP), 106
     y_r6, h_r6 = y_r5 + h_r5 + GAP, 246
     H = y_r6 + h_r6 + PAD
     wl, wr = 548, INNER - 548 - GAP
 
     cx, cy = PAD + 100, y_hero + 107
-    pieces = {k: [] for k in ("top", "pingo", "candidato", "soin", "creators", "bottom")}
+    qkeys = [f"q{i}" for i in range(len(CFG["questions"]))]
+    pieces = {k: [] for k in ["hero", "linkedin", "email", "stats", "pingo", "candidato", "soin", "creators",
+                              *qkeys, "bottom"]}
     add = lambda k, svg: pieces[k].append(svg)
 
     # ---- hero
@@ -389,8 +393,19 @@ def render(theme, cal, avatar, music, img):
                  + T(mx_ + 40, my_ + 36, "right now", 12, t["muted"], "Inter", 400)
                  + T(mx_ + 22, my_ + 80, st["title"], 22, t["text"], "Inter", 800)
                  + T(mx_ + 22, my_ + 104, st["subtitle"], 13, t["muted"], "Inter", 400))
-    add("top", f'<clipPath id="av"><circle cx="{cx}" cy="{cy}" r="60"/></clipPath>')
-    add("top", tile(PAD, y_hero, INNER, h_hero, t, 0, av + hero + card))
+    add("hero", f'<clipPath id="av"><circle cx="{cx}" cy="{cy}" r="60"/></clipPath>')
+    add("hero", tile(PAD, y_hero, INNER, h_hero, t, 0, av + hero + card))
+
+    # ---- social links, each its own clickable piece
+    hw = (INNER - GAP) / 2
+    for j, (key, ic) in enumerate((("linkedin", "LinkedIn"), ("email", "Gmail"))):
+        c = CFG["social"][key]
+        x = PAD + j * (hw + GAP)
+        inner = icon(ic, x + 24, y_soc + h_soc / 2 - 12, 24, brand(ic, t))
+        inner += T(x + 62, y_soc + 39, c["label"], 17, t["text"], "Inter", 800)
+        inner += T(x + 62 + tw(c["label"], "inter-800", 17) + 12, y_soc + 38, c["handle"], 14, t["muted"], "Inter", 400)
+        inner += T(x + hw - 24, y_soc + 39, "↗", 16, t["a1"], "Inter", 600, "end")
+        add(key, tile(round(x, 1), y_soc, round(hw, 1), h_soc, t, 11 + j, inner))
 
     # ---- stats
     sw_ = (INNER - GAP * 3) / 4
@@ -398,7 +413,7 @@ def render(theme, cal, avatar, music, img):
         x = PAD + i * (sw_ + GAP)
         inner = T(x + 20, y_stats + 52, s["value"], 36, t["text"], "Inter", 800, ls=-1)
         para, _ = paragraph(x + 22, y_stats + 78, s["label"], 12.5, t["muted"], sw_ - 40, lh=1.4)
-        add("top", tile(round(x, 1), y_stats, round(sw_, 1), h_stats, t, 1 + i, inner + para))
+        add("stats", tile(round(x, 1), y_stats, round(sw_, 1), h_stats, t, 1 + i, inner + para))
 
     # ---- products with real screenshots
     for j, (key, x, w, yy) in enumerate((("pingo", PAD, wl, y_r3), ("candidato", PAD + wl + GAP, wr, y_r3),
@@ -424,6 +439,13 @@ def render(theme, cal, avatar, music, img):
         inner += T(x + 26 + tw(big, "inter-800", 28) + 10, fy - 2, small, 13, t["muted"], "Inter", 400)
     inner += T(x + 24, y_r4 + h_r4 - 20, c["footer"], 12, t["a1"], "JB", 500)
     add("creators", tile(x, y_r4, wr, h_r4, t, 8, inner))
+
+    # ---- question headers: the README wraps each one in <summary>, the answer is plain markdown below it
+    for i, q in enumerate(CFG["questions"]):
+        yy = y_q + i * (h_q + GAP)
+        inner = T(PAD + 26, yy + 37, q, 17, t["text"], "Inter", 800, ls=-0.2)
+        inner += T(W - PAD - 26, yy + 36, "click to open  +", 12, t["faint"], "Inter", 400, "end")
+        add(f"q{i}", tile(PAD, yy, INNER, h_q, t, 13 + i, inner))
 
     # ---- stack, one row of real logos
     x, y = PAD, y_r5
@@ -498,7 +520,10 @@ def render(theme, cal, avatar, music, img):
 
     # viewBox regions in the shared canvas; side-by-side pieces each keep half the gutter on their inner edge
     mid = PAD + wl + GAP / 2
-    boxes = {"top": (PAD, y_hero, INNER, y_stats + h_stats - y_hero),
+    boxes = {"hero": (PAD, y_hero, INNER, h_hero),
+             "linkedin": (PAD, y_soc, W / 2 - PAD, h_soc), "email": (W / 2, y_soc, W / 2 - PAD, h_soc),
+             "stats": (PAD, y_stats, INNER, h_stats),
+             **{k: (PAD, y_q + i * (h_q + GAP), INNER, h_q) for i, k in enumerate(qkeys)},
              "pingo": (PAD, y_r3, mid - PAD, h_r3), "candidato": (mid, y_r3, W - PAD - mid, h_r3),
              "soin": (PAD, y_r4, mid - PAD, h_r4), "creators": (mid, y_r4, W - PAD - mid, h_r4),
              "bottom": (PAD, y_r5, INNER, y_r6 + h_r6 - y_r5)}
