@@ -8,10 +8,22 @@
     "subtitle": "deal alerts powered by LLMs"
   },
   "stats": [
-    { "value": "20k+", "label": "creators on a platform I built as sole dev" },
-    { "value": "10k+", "label": "deals parsed every day with LLMs" },
-    { "value": "1st", "label": "place at the TJCE-UFC Hackathon 2026" },
-    { "value": "42,000x", "label": "less data per query after a SQL rewrite" }
+    {
+      "value": "20k+",
+      "label": "creators on a platform I built as sole dev"
+    },
+    {
+      "value": "10k+",
+      "label": "deals parsed every day with LLMs"
+    },
+    {
+      "value": "1st",
+      "label": "place at the TJCE-UFC Hackathon 2026"
+    },
+    {
+      "value": "42,000x",
+      "label": "less data per query after a SQL rewrite"
+    }
   ],
   "pingo": {
     "title": "Pingo",
@@ -42,8 +54,31 @@
     "footer": "20k+ creators · iOS + Android"
   },
   "stack": [
-    "TypeScript", "React", "Next.js", "Node.js", "NestJS", "tRPC", "Prisma", "PostgreSQL",
-    "Tailwind", "Expo", "Docker", "Vercel", "GitHub Actions", "Gemini", "Claude", "Pix"
+    "TypeScript",
+    "React",
+    "Next.js",
+    "Node.js",
+    "NestJS",
+    "tRPC",
+    "Prisma",
+    "PostgreSQL",
+    "Tailwind",
+    "Expo",
+    "Docker",
+    "Vercel",
+    "GitHub Actions",
+    "Gemini",
+    "Claude",
+    "Pix"
   ],
-  "background": { "file": "bg.jpg", "credit": "background: Jericoacoara, Ceará" }
+  "background": {
+    "file": "bg.jpg",
+    "credit": "background: Jericoacoara, Ceará"
+  },
+  "typing": [
+    "full-stack developer",
+    "AI products in production",
+    "payments, Pix and webhooks",
+    "PostgreSQL beyond CRUD"
+  ]
 }

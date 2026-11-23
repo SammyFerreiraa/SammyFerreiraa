@@ -227,6 +227,31 @@ def load_spotify():
         return None
 
 
+def typing(x, y, phrases, size, t, slot=4.0, type_s=0.06, del_s=0.03):
+    """Terminal-style line that types each phrase, holds it, deletes it, then moves to the next one."""
+    cw = tw("a", "mono-400", size)
+    dur = slot * len(phrases)
+    out = ""
+    for i, ph in enumerate(phrases):
+        n = len(ph)
+        hold = slot - n * (type_s + del_s) - 0.3
+        assert hold > 0.4, f"phrase too long for its slot: {ph}"
+        frames = [(k * type_s, k) for k in range(n + 1)]
+        frames += [(n * type_s + hold + j * del_s, n - j) for j in range(1, n + 1)]
+        kt = ";".join(f"{tm / dur:.4f}" for tm, _ in frames) + ";1"
+        widths = ";".join(f"{k * cw:.1f}" for _, k in frames) + ";0"
+        xs = ";".join(f"{x + k * cw + 1:.1f}" for _, k in frames) + f";{x + 1:.1f}"
+        anim = f'calcMode="discrete" dur="{dur}s" begin="{i * slot}s" repeatCount="indefinite"'
+        out += (f'<clipPath id="ty{i}"><rect x="{x}" y="{y - size}" height="{size * 1.4}" width="0">'
+                f'<animate attributeName="width" values="{widths}" keyTimes="{kt}" {anim}/></rect></clipPath>'
+                + T(x, y, ph, size, t["text"], "JB", 400, extra=f' clip-path="url(#ty{i})"')
+                + f'<rect x="{x + 1}" y="{y - size * 0.82:.1f}" width="{cw * 0.55:.1f}" height="{size * 1.05:.1f}" '
+                  f'fill="{t["a1"]}" opacity="0"><animate attributeName="x" values="{xs}" keyTimes="{kt}" {anim}/>'
+                  f'<animate attributeName="opacity" values="0;1;0" keyTimes="0;0.0001;{slot / dur:.4f}" {anim}/>'
+                  f'</rect>')
+    return out
+
+
 def truncate(text, font, size, width):
     if tw(text, font, size) <= width:
         return text
@@ -295,7 +320,7 @@ def render(theme, cal, avatar, music, img):
             weeks.append([])
         weeks[-1].append((d, n, lvl))
 
-    y_hero, h_hero = PAD, 200
+    y_hero, h_hero = PAD, 214
     y_stats, h_stats = y_hero + h_hero + GAP, 116
     y_r3, h_r3 = y_stats + h_stats + GAP, 372
     y_r4, h_r4 = y_r3 + h_r3 + GAP, 150
@@ -304,7 +329,7 @@ def render(theme, cal, avatar, music, img):
     H = y_r6 + h_r6 + PAD
     wl, wr = 548, INNER - 548 - GAP
 
-    cx, cy = PAD + 100, y_hero + 100
+    cx, cy = PAD + 100, y_hero + 107
     defs = (f'<defs><clipPath id="frame"><rect width="{W}" height="{H}" rx="28"/></clipPath>'
             f'<clipPath id="av"><circle cx="{cx}" cy="{cy}" r="60"/></clipPath></defs>')
     parts = [f'<g clip-path="url(#frame)"><image class="bg" href="{img["bg"]}" width="{W}" height="{H}" '
@@ -323,12 +348,15 @@ def render(theme, cal, avatar, music, img):
            f'stroke-opacity="{min(1, t["edge_op"] * 3):.2f}" stroke-width="1.5"/>')
     hx = PAD + 194
     mw = W - PAD - 24 - 330 - hx - 20  # text column ends before the music card
-    hero = T(hx - 2, y_hero + 82, CFG["name"], 44, t["text"], "Inter", 800, ls=-1.3)
-    tag_svg, n_lines = paragraph(hx, y_hero + 116, CFG["tagline"], 16, t["text"], mw, lh=1.4)
+    mono = "'JB', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+    hero = (f'<text x="{hx}" y="{y_hero + 46}" font-family="{mono}" font-size="13" fill="{t["faint"]}">'
+            f'<tspan fill="{t["good"]}">sammy@fortaleza</tspan>:<tspan fill="{t["a2"]}">~</tspan>$ whoami</text>')
+    hero += T(hx - 2, y_hero + 94, CFG["name"], 44, t["text"], "Inter", 800, ls=-1.3)
+    hero += T(hx, y_hero + 128, ">", 17, t["a1"], "JB", 500) + typing(hx + 18, y_hero + 128, CFG["typing"], 17, t)
+    tag_svg, n_lines = paragraph(hx, y_hero + 162, CFG["tagline"], 15, t["muted"], mw, lh=1.4)
     hero += tag_svg
-    hero += T(hx, y_hero + 116 + n_lines * 22.4 + 12, CFG["subline"], 13, t["faint"], "Inter", 400)
 
-    mx_, my_, mw_, mh_ = W - PAD - 24 - 330, y_hero + 24, 330, 152
+    mx_, my_, mw_, mh_ = W - PAD - 24 - 330, y_hero + 31, 330, 152
     card = (f'<rect x="{mx_}" y="{my_}" width="{mw_}" height="{mh_}" rx="18" fill="{t["node"]}" '
             f'fill-opacity="{t["node_op"]}" stroke="{t["edge"]}" stroke-opacity="{t["edge_op"]}"/>')
     tx = mx_ + 146
