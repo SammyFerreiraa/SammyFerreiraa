@@ -281,12 +281,23 @@ def head(x, y, w, t, title, tag, icon_uri=None):
     return out
 
 
-def shot(x, y, w, h, t, uri, cid):
-    return (f'<clipPath id="{cid}"><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="12"/></clipPath>'
-            f'<image href="{uri}" x="{x}" y="{y}" width="{w}" height="{h}" clip-path="url(#{cid})" '
-            f'preserveAspectRatio="xMinYMin slice"/>'
-            f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="12" fill="none" stroke="{t["edge"]}" '
-            f'stroke-opacity="{t["edge_op"] * 1.4:.2f}"/>')
+BAR = 26  # browser-window title bar above each screenshot
+
+
+def shot(x, y, w, t, uri, cid, url):
+    """Screenshot (16:9) inside a small browser window with the site's address in the bar."""
+    ih = w * 9 / 16
+    h = BAR + ih
+    dots = "".join(f'<circle cx="{x + 14 + i * 13}" cy="{y + BAR / 2}" r="4" fill="{c}"/>'
+                   for i, c in enumerate(("#ff5f57", "#febc2e", "#28c840")))
+    return (f'<clipPath id="{cid}"><rect x="{x}" y="{y}" width="{w}" height="{h:.1f}" rx="12"/></clipPath>'
+            f'<g clip-path="url(#{cid})"><rect x="{x}" y="{y}" width="{w}" height="{BAR}" fill="{t["node"]}" '
+            f'fill-opacity="{min(1, t["node_op"] * 2.2):.2f}"/>{dots}'
+            + T(x + w / 2, y + BAR / 2 + 3.6, url, 10.5, t["muted"], "JB", 400, "middle")
+            + f'<image href="{uri}" x="{x}" y="{y + BAR}" width="{w}" height="{ih:.1f}" '
+              f'preserveAspectRatio="xMidYMid slice"/></g>'
+              f'<rect x="{x}" y="{y}" width="{w}" height="{h:.1f}" rx="12" fill="none" stroke="{t["edge"]}" '
+              f'stroke-opacity="{t["edge_op"] * 1.4:.2f}"/>')
 
 
 def css(ncols):
@@ -327,13 +338,13 @@ def render(theme, cal, avatar, music, img):
     y_hero, h_hero = PAD, 214
     y_soc, h_soc = y_hero + h_hero + GAP, 64
     y_stats, h_stats = y_soc + h_soc + GAP, 116
-    y_r3, h_r3 = y_stats + h_stats + GAP, 372
-    y_r4, h_r4 = y_r3 + h_r3 + GAP, 372
+    y_r3, h_r3 = y_stats + h_stats + GAP, 474
+    y_r4, h_r4 = y_r3 + h_r3 + GAP, 474
     y_q, h_q = y_r4 + h_r4 + GAP, 60
     y_r5, h_r5 = y_q + len(CFG["questions"]) * (h_q + GAP), 106
     y_r6, h_r6 = y_r5 + h_r5 + GAP, 246
     H = y_r6 + h_r6 + PAD
-    wl, wr = 548, INNER - 548 - GAP
+    wl = wr = (INNER - GAP) / 2
 
     cx, cy = PAD + 100, y_hero + 107
     qkeys = [f"q{i}" for i in range(len(CFG["questions"]))]
@@ -387,12 +398,21 @@ def render(theme, cal, avatar, music, img):
         card += T(tx, my_ + 74 + len(lines) * 21 + 4, truncate(music["artist"], "inter-400", 13, tw_), 13,
                   t["muted"], "Inter", 400)
     else:
-        st = CFG["status"]
+        # no music: show real activity, the last 7 days of contributions and a 14-day bar chart
+        recent = [n for _, n, _ in cal[-14:]]
+        week = sum(recent[-7:])
         card += (f'<circle class="pulse" cx="{mx_ + 26}" cy="{my_ + 32}" r="4.5" fill="{t["good"]}"/>'
                  f'<circle cx="{mx_ + 26}" cy="{my_ + 32}" r="4.5" fill="{t["good"]}"/>'
-                 + T(mx_ + 40, my_ + 36, "right now", 12, t["muted"], "Inter", 400)
-                 + T(mx_ + 22, my_ + 80, st["title"], 22, t["text"], "Inter", 800)
-                 + T(mx_ + 22, my_ + 104, st["subtitle"], 13, t["muted"], "Inter", 400))
+                 + T(mx_ + 40, my_ + 36, "shipping this week", 12, t["muted"], "Inter", 400)
+                 + T(mx_ + 22, my_ + 80, f"{week:,}", 30, t["text"], "Inter", 800, ls=-0.8)
+                 + T(mx_ + 26 + tw(f"{week:,}", "inter-800", 30), my_ + 79, "contributions in 7 days", 13,
+                     t["muted"], "Inter", 400))
+        bw, bg_, bx0, by0, bh = 16, 5, mx_ + 22, my_ + mh_ - 20, 38
+        top = max(recent) or 1
+        for i, n in enumerate(recent):
+            hgt = max(3, bh * n / top)
+            card += (f'<rect x="{bx0 + i * (bw + bg_)}" y="{by0 - hgt:.1f}" width="{bw}" height="{hgt:.1f}" rx="3" '
+                     f'fill="{t["a1"] if i >= 7 else t["a2"]}" fill-opacity="{1 if i >= 7 else 0.45}"/>')
     add("hero", f'<clipPath id="av"><circle cx="{cx}" cy="{cy}" r="60"/></clipPath>')
     add("hero", tile(PAD, y_hero, INNER, h_hero, t, 0, av + hero + card))
 
@@ -421,8 +441,9 @@ def render(theme, cal, avatar, music, img):
         c = CFG[key]
         inner = head(x + 24, yy + 46, w - 48, t, c["title"], c["tag"], img.get(key + "_icon"))
         para, _ = paragraph(x + 24, yy + 82, c["text"], 13.5, t["muted"], w - 48, lh=1.45)
-        sh_h = 196
-        inner += para + shot(x + 24, yy + h_r3 - sh_h - 46, w - 48, sh_h, t, img[key + "_shot"], f"s{key}")
+        sw = w - 48
+        inner += para + shot(x + 24, yy + h_r3 - 46 - BAR - sw * 9 / 16, sw, t, img[key + "_shot"], f"s{key}",
+                             c["bar"])
         link = c.get("url")
         inner += T(x + 24, yy + h_r3 - 20, c["footer"] + (" ↗" if link else ""), 12, t["a1"], "JB", 500)
         add(key, tile(x, yy, w, h_r3, t, 5 + j, inner))
@@ -434,7 +455,7 @@ def render(theme, cal, avatar, music, img):
     para, _ = paragraph(x + 24, y_r4 + 82, c["text"], 13.5, t["muted"], wr - 48, lh=1.45)
     inner += para
     for i, (big, small) in enumerate(c["facts"]):
-        fy = y_r4 + 186 + i * 58
+        fy = y_r4 + 210 + i * 72
         inner += T(x + 24, fy, big, 28, t["text"], "Inter", 800, ls=-0.6)
         inner += T(x + 26 + tw(big, "inter-800", 28) + 10, fy - 2, small, 13, t["muted"], "Inter", 400)
     inner += T(x + 24, y_r4 + h_r4 - 20, c["footer"], 12, t["a1"], "JB", 500)
