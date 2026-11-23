@@ -262,7 +262,11 @@ def truncate(text, font, size, width):
 
 # ------------------------------------------------------------------ building blocks
 def tile(x, y, w, h, t, idx, inner=""):
+    # each tile shows its own slice of the photo (same global position), so pieces line up when stacked
     return (f'<g class="tile" style="animation-delay:{0.06 * idx:.2f}s">'
+            f'<clipPath id="tc{idx}"><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="22"/></clipPath>'
+            f'<g clip-path="url(#tc{idx})"><use href="#bgimg"/>'
+            f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{t["veil"]}" fill-opacity="{t["veil_op"]}"/></g>'
             f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="22" fill="{t["glass"]}" fill-opacity="{t["glass_op"]}"'
             f' stroke="{t["edge"]}" stroke-opacity="{t["edge_op"]}"/>{inner}</g>')
 
@@ -323,18 +327,15 @@ def render(theme, cal, avatar, music, img):
     y_hero, h_hero = PAD, 214
     y_stats, h_stats = y_hero + h_hero + GAP, 116
     y_r3, h_r3 = y_stats + h_stats + GAP, 372
-    y_r4, h_r4 = y_r3 + h_r3 + GAP, 150
+    y_r4, h_r4 = y_r3 + h_r3 + GAP, 372
     y_r5, h_r5 = y_r4 + h_r4 + GAP, 106
     y_r6, h_r6 = y_r5 + h_r5 + GAP, 246
     H = y_r6 + h_r6 + PAD
     wl, wr = 548, INNER - 548 - GAP
 
     cx, cy = PAD + 100, y_hero + 107
-    defs = (f'<defs><clipPath id="frame"><rect width="{W}" height="{H}" rx="28"/></clipPath>'
-            f'<clipPath id="av"><circle cx="{cx}" cy="{cy}" r="60"/></clipPath></defs>')
-    parts = [f'<g clip-path="url(#frame)"><image class="bg" href="{img["bg"]}" width="{W}" height="{H}" '
-             f'preserveAspectRatio="xMidYMid slice"/>'
-             f'<rect width="{W}" height="{H}" fill="{t["veil"]}" fill-opacity="{t["veil_op"]}"/></g>']
+    pieces = {k: [] for k in ("top", "pingo", "candidato", "soin", "creators", "bottom")}
+    add = lambda k, svg: pieces[k].append(svg)
 
     # ---- hero
     if avatar:
@@ -388,7 +389,8 @@ def render(theme, cal, avatar, music, img):
                  + T(mx_ + 40, my_ + 36, "right now", 12, t["muted"], "Inter", 400)
                  + T(mx_ + 22, my_ + 80, st["title"], 22, t["text"], "Inter", 800)
                  + T(mx_ + 22, my_ + 104, st["subtitle"], 13, t["muted"], "Inter", 400))
-    parts.append(tile(PAD, y_hero, INNER, h_hero, t, 0, av + hero + card))
+    add("top", f'<clipPath id="av"><circle cx="{cx}" cy="{cy}" r="60"/></clipPath>')
+    add("top", tile(PAD, y_hero, INNER, h_hero, t, 0, av + hero + card))
 
     # ---- stats
     sw_ = (INNER - GAP * 3) / 4
@@ -396,27 +398,32 @@ def render(theme, cal, avatar, music, img):
         x = PAD + i * (sw_ + GAP)
         inner = T(x + 20, y_stats + 52, s["value"], 36, t["text"], "Inter", 800, ls=-1)
         para, _ = paragraph(x + 22, y_stats + 78, s["label"], 12.5, t["muted"], sw_ - 40, lh=1.4)
-        parts.append(tile(round(x, 1), y_stats, round(sw_, 1), h_stats, t, 1 + i, inner + para))
+        add("top", tile(round(x, 1), y_stats, round(sw_, 1), h_stats, t, 1 + i, inner + para))
 
     # ---- products with real screenshots
-    for j, (key, x, w) in enumerate((("pingo", PAD, wl), ("candidato", PAD + wl + GAP, wr))):
+    for j, (key, x, w, yy) in enumerate((("pingo", PAD, wl, y_r3), ("candidato", PAD + wl + GAP, wr, y_r3),
+                                          ("soin", PAD, wl, y_r4))):
         c = CFG[key]
-        inner = head(x + 24, y_r3 + 46, w - 48, t, c["title"], c["tag"], img[key + "_icon"])
-        para, _ = paragraph(x + 24, y_r3 + 82, c["text"], 13.5, t["muted"], w - 48, lh=1.45)
+        inner = head(x + 24, yy + 46, w - 48, t, c["title"], c["tag"], img.get(key + "_icon"))
+        para, _ = paragraph(x + 24, yy + 82, c["text"], 13.5, t["muted"], w - 48, lh=1.45)
         sh_h = 196
-        inner += para + shot(x + 24, y_r3 + h_r3 - sh_h - 46, w - 48, sh_h, t, img[key + "_shot"], f"s{key}")
-        inner += T(x + 24, y_r3 + h_r3 - 20, c["footer"] + " ↗", 12, t["a1"], "JB", 500)
-        parts.append(tile(x, y_r3, w, h_r3, t, 5 + j, inner))
+        inner += para + shot(x + 24, yy + h_r3 - sh_h - 46, w - 48, sh_h, t, img[key + "_shot"], f"s{key}")
+        link = c.get("url")
+        inner += T(x + 24, yy + h_r3 - 20, c["footer"] + (" ↗" if link else ""), 12, t["a1"], "JB", 500)
+        add(key, tile(x, yy, w, h_r3, t, 5 + j, inner))
 
-    # ---- soin + creators
-    hw = (INNER - GAP) / 2
-    for j, key in enumerate(("soin", "creators")):
-        c = CFG[key]
-        x = PAD + j * (hw + GAP)
-        inner = head(x + 24, y_r4 + 44, hw - 48, t, c["title"], c["tag"])
-        para, _ = paragraph(x + 24, y_r4 + 76, c["text"], 13.5, t["muted"], hw - 48, lh=1.45)
-        inner += para + T(x + 24, y_r4 + h_r4 - 20, c["footer"], 12, t["a1"], "JB", 500)
-        parts.append(tile(round(x, 1), y_r4, round(hw, 1), h_r4, t, 7 + j, inner))
+    # ---- creator platform (client work, no public screenshot)
+    c = CFG["creators"]
+    x = PAD + wl + GAP
+    inner = head(x + 24, y_r4 + 46, wr - 48, t, c["title"], c["tag"])
+    para, _ = paragraph(x + 24, y_r4 + 82, c["text"], 13.5, t["muted"], wr - 48, lh=1.45)
+    inner += para
+    for i, (big, small) in enumerate(c["facts"]):
+        fy = y_r4 + 186 + i * 58
+        inner += T(x + 24, fy, big, 28, t["text"], "Inter", 800, ls=-0.6)
+        inner += T(x + 26 + tw(big, "inter-800", 28) + 10, fy - 2, small, 13, t["muted"], "Inter", 400)
+    inner += T(x + 24, y_r4 + h_r4 - 20, c["footer"], 12, t["a1"], "JB", 500)
+    add("creators", tile(x, y_r4, wr, h_r4, t, 8, inner))
 
     # ---- stack, one row of real logos
     x, y = PAD, y_r5
@@ -430,7 +437,7 @@ def render(theme, cal, avatar, music, img):
         inner += icon(name, ix - 11, y + 30, 22, brand(name, t))
         label = name if tw(name, "inter-400", 10.5) < cw - 2 else name.split()[0]
         inner += T(ix, y + 84, label, 10.5, t["muted"], "Inter", 400, "middle")
-    parts.append(tile(x, y, INNER, h_r5, t, 9, inner))
+    add("bottom", tile(x, y, INNER, h_r5, t, 9, inner))
 
     # ---- contributions
     x, y = PAD, y_r6
@@ -487,12 +494,23 @@ def render(theme, cal, avatar, music, img):
         inner += f'<rect x="{lx - 11}" y="{y + h_r6 - 26}" width="11" height="11" rx="2.5" fill="{t["heat"][lvl]}"/>'
         lx -= 15
     inner += T(lx - 4, y + h_r6 - 16, "less", 10.5, t["faint"], "Inter", 400, "end")
-    parts.append(tile(x, y, INNER, h_r6, t, 10, inner))
+    add("bottom", tile(x, y, INNER, h_r6, t, 10, inner))
 
-    title = f'{CFG["name"]}: {CFG["subline"]}'
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" '
-            f'role="img" aria-label="{escape(title)}"><title>{escape(title)}</title>'
-            + css(len(weeks)) + defs + "".join(parts) + "</svg>\n")
+    # viewBox regions in the shared canvas; side-by-side pieces each keep half the gutter on their inner edge
+    mid = PAD + wl + GAP / 2
+    boxes = {"top": (PAD, y_hero, INNER, y_stats + h_stats - y_hero),
+             "pingo": (PAD, y_r3, mid - PAD, h_r3), "candidato": (mid, y_r3, W - PAD - mid, h_r3),
+             "soin": (PAD, y_r4, mid - PAD, h_r4), "creators": (mid, y_r4, W - PAD - mid, h_r4),
+             "bottom": (PAD, y_r5, INNER, y_r6 + h_r6 - y_r5)}
+    style = css(len(weeks))
+    bgdef = f'<defs><image id="bgimg" href="{img["bg"]}" width="{W}" height="{H}" preserveAspectRatio="xMidYMid slice"/></defs>'
+    out = {}
+    for k, (bx, by, bw, bh) in boxes.items():
+        label = f'{CFG["name"]}: {k}'
+        out[k] = (f'<svg xmlns="http://www.w3.org/2000/svg" width="{bw:g}" height="{bh:g}" '
+                  f'viewBox="{bx:g} {by:g} {bw:g} {bh:g}" role="img" aria-label="{escape(label)}">'
+                  f'<title>{escape(label)}</title>' + style + bgdef + "".join(pieces[k]) + "</svg>\n")
+    return out
 
 
 if __name__ == "__main__":
@@ -500,11 +518,13 @@ if __name__ == "__main__":
     avatar = load_avatar()
     music = load_spotify()
     img = {"bg": asset_uri(CFG["background"]["file"])}
-    for key in ("pingo", "candidato"):
-        img[key + "_icon"] = asset_uri(CFG[key]["icon"])
+    for key in ("pingo", "candidato", "soin"):
+        if CFG[key].get("icon"):
+            img[key + "_icon"] = asset_uri(CFG[key]["icon"])
         img[key + "_shot"] = asset_uri(CFG[key]["shot"])
     out = ROOT / "profile"
     out.mkdir(exist_ok=True)
     for th in THEMES:
-        (out / f"bento-{th}.svg").write_text(render(th, cal, avatar, music, img), encoding="utf-8")
-    print("wrote", [p.name for p in out.glob("bento-*.svg")], "music:", bool(music))
+        for name, svg in render(th, cal, avatar, music, img).items():
+            (out / f"{name}-{th}.svg").write_text(svg, encoding="utf-8")
+    print("wrote", sorted(p.name for p in out.glob("*.svg")), "music:", bool(music))

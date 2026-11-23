@@ -2,7 +2,6 @@
   "username": "SammyFerreiraa",
   "name": "Sammy Ferreira",
   "tagline": "Most of my code lives in private repos, so this is the trailer.",
-  "subline": "full-stack developer · Fortaleza, Brazil",
   "status": {
     "title": "Building Pingo",
     "subtitle": "deal alerts powered by LLMs"
@@ -31,7 +30,8 @@
     "icon": "pingo-icon.svg",
     "shot": "shot-pingo.jpg",
     "text": "Watches 64 Telegram deal channels, pulls price, coupon and store out with LLMs, and pings you on WhatsApp when something you want shows up.",
-    "footer": "pingo.nortyra.com.br"
+    "footer": "pingo.nortyra.com.br",
+    "url": "https://pingo.nortyra.com.br"
   },
   "candidato": {
     "title": "Candidatô",
@@ -39,19 +39,35 @@
     "icon": "candidato-icon.svg",
     "shot": "shot-candidato.jpg",
     "text": "Job application emails where the AI only picks from lists the backend checks, so it can't make things up.",
-    "footer": "candidato.nortyra.com.br"
+    "footer": "candidato.nortyra.com.br",
+    "url": "https://candidato.nortyra.com.br"
   },
   "soin": {
     "title": "SOIN",
     "tag": "hackathon winner",
-    "text": "Court case management with 1,300 real cases synced from the CNJ DataJud API.",
-    "footer": "4 days · ~700 tests · sole dev"
+    "text": "Case management for an environmental court: 1,300 real cases synced from the CNJ DataJud API, and every AI suggestion shows why it was made.",
+    "footer": "4 days · ~700 tests · sole dev",
+    "shot": "shot-soin.jpg"
   },
   "creators": {
     "title": "Creator platform",
     "tag": "sole dev, client work",
     "text": "Influencer marketing: campaigns, social metrics and Pix payouts with reconciliation.",
-    "footer": "20k+ creators · iOS + Android"
+    "footer": "client work, private repo",
+    "facts": [
+      [
+        "20k+",
+        "creators on the platform"
+      ],
+      [
+        "Pix",
+        "payouts, reconciled"
+      ],
+      [
+        "iOS",
+        "and Android apps"
+      ]
+    ]
   },
   "stack": [
     "TypeScript",
