@@ -41,6 +41,7 @@ THEMES = {
 }
 
 W, PAD, GAP = 1000, 20, 16
+SNAKE_START, SNAKE_STEP, SNAKE_HOLD, SNAKE_LEN = 1.6, 0.045, 3.0, 6  # seconds, seconds per cell, pause, segments
 INNER = W - PAD * 2
 
 # ------------------------------------------------------------------ text helpers
@@ -418,7 +419,8 @@ def render(theme, cal, avatar, music, img):
         inner += T(mx, y + 48, val, 14, t["text"], "Inter", 600, "end")
         mx -= wv + 28
     cell, cg = 13.4, 3.6
-    gx = x + (INNER - (len(weeks) * (cell + cg) - cg)) / 2
+    snake_dur = len(weeks) * 7 * SNAKE_STEP + SNAKE_HOLD
+    gx =x + (INNER - (len(weeks) * (cell + cg) - cg)) / 2
     gy = y + 90
     month_seen = set()
     for wi, wk in enumerate(weeks):
@@ -427,9 +429,29 @@ def render(theme, cal, avatar, music, img):
             if d.day <= 7 and d.month not in month_seen and dy == 0 and wi < len(weeks) - 1:
                 month_seen.add(d.month)
                 inner += T(gx + wi * (cell + cg), gy - 10, d.strftime("%b"), 10, t["faint"], "Inter", 400)
+            # the snake walks the grid column by column (down, then up); a cell is eaten when the head reaches it
+            k = wi * 7 + (dy if wi % 2 == 0 else 6 - dy)
+            eat = (f'<animate attributeName="fill" values="{t["heat"][lvl]};{t["heat"][0]}" '
+                   f'keyTimes="0;{k * SNAKE_STEP / snake_dur:.4f}" calcMode="discrete" dur="{snake_dur:.2f}s" '
+                   f'begin="{SNAKE_START}s" repeatCount="indefinite"/>') if lvl else ""
             inner += (f'<rect class="cell c{wi}" x="{gx + wi * (cell + cg):.1f}" y="{gy + dy * (cell + cg):.1f}" '
-                      f'width="{cell}" height="{cell}" rx="3.2" fill="{t["heat"][lvl]}"/>')
-    upd = dt.datetime.now(dt.timezone.utc).strftime("%b %-d, %Y") if not DEMO else "Nov 22, 2026"
+                      f'width="{cell}" height="{cell}" rx="3.2" fill="{t["heat"][lvl]}">{eat}</rect>')
+    step = cell + cg
+    pts = [(gx + wi * step + cell / 2, gy + (r if wi % 2 == 0 else 6 - r) * step + cell / 2)
+           for wi in range(len(weeks)) for r in range(7)]
+    path = "M" + " L".join(f"{px:.1f},{py:.1f}" for px, py in pts)
+    fr = (len(pts) - 1) * SNAKE_STEP / snake_dur
+    for i in range(SNAKE_LEN):
+        sz = cell - 1.5 - i * 0.6
+        color = t["a1"] if i == 0 else t["a2"]
+        begin = f"{SNAKE_START + i * SNAKE_STEP:.3f}s"
+        inner += (f'<rect x="{-sz / 2:.1f}" y="{-sz / 2:.1f}" width="{sz:.1f}" height="{sz:.1f}" rx="4" '
+                  f'fill="{color}" opacity="0" fill-opacity="{1 - i * 0.12:.2f}">'
+                  f'<animateMotion path="{path}" dur="{snake_dur:.2f}s" begin="{begin}" repeatCount="indefinite" '
+                  f'keyPoints="0;1;1" keyTimes="0;{fr:.4f};1" calcMode="linear"/>'
+                  f'<animate attributeName="opacity" values="1;0" keyTimes="0;{fr:.4f}" calcMode="discrete" '
+                  f'dur="{snake_dur:.2f}s" begin="{begin}" repeatCount="indefinite"/></rect>')
+    upd =dt.datetime.now(dt.timezone.utc).strftime("%b %-d, %Y") if not DEMO else "Nov 22, 2026"
     inner += T(x + 26, y + h_r6 - 16, f"updated {upd} · {CFG['background']['credit']}", 10.5, t["faint"],
                "Inter", 400)
     lx = x + INNER - 26
