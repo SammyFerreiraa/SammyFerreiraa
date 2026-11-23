@@ -9,7 +9,7 @@
 <p><picture><source media="(prefers-color-scheme: dark)" srcset="./profile/soin-dark.svg"><img alt="SOIN: case management for an environmental court, hackathon winner" src="./profile/soin-light.svg" width="57.6%"></picture><picture><source media="(prefers-color-scheme: dark)" srcset="./profile/creators-dark.svg"><img alt="Creator platform: 20k+ creators, Pix payouts, iOS and Android" src="./profile/creators-light.svg" width="41.9%"></picture></p>
 
 <details>
-<summary><picture><source media="(prefers-color-scheme: dark)" srcset="./profile/q0-dark.svg"><img alt="How Pingo turns a Telegram message into a WhatsApp alert" src="./profile/q0-light.svg" width="98.3%" align="middle"></picture></summary>
+<summary><picture><source media="(prefers-color-scheme: dark)" srcset="./profile/q0-dark.svg"><img alt="How Pingo turns a Telegram message into a WhatsApp alert" src="./profile/q0-light.svg" width="98.3%" align="absmiddle"></picture></summary>
 <br>
 
 ```mermaid
@@ -29,7 +29,7 @@ Retries are classified by error type, the queue survives WhatsApp session drops,
 </details>
 
 <details>
-<summary><picture><source media="(prefers-color-scheme: dark)" srcset="./profile/q1-dark.svg"><img alt="How I ship with AI agents" src="./profile/q1-light.svg" width="98.3%" align="middle"></picture></summary>
+<summary><picture><source media="(prefers-color-scheme: dark)" srcset="./profile/q1-dark.svg"><img alt="How I ship with AI agents" src="./profile/q1-light.svg" width="98.3%" align="absmiddle"></picture></summary>
 <br>
 
 - I write the spec first: inputs, outputs, edge cases and what failure looks like.
@@ -39,7 +39,7 @@ Retries are classified by error type, the queue survives WhatsApp session drops,
 </details>
 
 <details>
-<summary><picture><source media="(prefers-color-scheme: dark)" srcset="./profile/q2-dark.svg"><img alt="Things I like in production" src="./profile/q2-light.svg" width="98.3%" align="middle"></picture></summary>
+<summary><picture><source media="(prefers-color-scheme: dark)" srcset="./profile/q2-dark.svg"><img alt="Things I like in production" src="./profile/q2-light.svg" width="98.3%" align="absmiddle"></picture></summary>
 <br>
 
 - Postgres doing real work: job queues with `SKIP LOCKED`, advisory locks, window functions
